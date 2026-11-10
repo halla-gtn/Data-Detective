@@ -57,7 +57,7 @@ def detect_theme() -> str:
         return "unknown"
 
 THEME = detect_theme()
-st.sidebar.write("Detected theme:", THEME)
+#st.sidebar.write("Detected theme:", THEME)
 
 @st.cache_data
 def logo_uri(name: str) -> str:
