@@ -51,7 +51,7 @@ if "theme_synced" not in st.session_state:
     st.rerun()
 
 THEME = detect_theme()
-
+st.sidebar.write("Detected theme:", THEME)
 
 @st.cache_data
 def logo_uri(name: str) -> str:
