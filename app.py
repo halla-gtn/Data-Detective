@@ -45,7 +45,7 @@ def logo_uri(name: str) -> str:
 
 
 # Palette cohérente pour tous les graphiques Plotly
-PLOTLY_TEMPLATE = "plotly_white" if THEME == "light" else "plotly_dark"
+PLOTLY_TEMPLATE = "plotly_dark"
 COLORWAY = ["#4F46E5", "#06B6D4", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#64748B"]
 pio.templates.default = PLOTLY_TEMPLATE
 px.defaults.template = PLOTLY_TEMPLATE
