@@ -37,27 +37,6 @@ st.set_page_config(
 )
 
 
-def detect_theme() -> str:
-    """Thème actif de Streamlit ("light" ou "dark"), choisi via le menu ⋮ > Settings > Theme."""
-    try:
-        return "dark" if st.context.theme.type == "dark" else "light"
-    except Exception:
-        return "light"
-
-
-# Au premier chargement, le type de thème peut être inexact : une seule relance pour le fiabiliser
-if "theme_synced" not in st.session_state:
-    st.session_state["theme_synced"] = True
-    st.rerun()
-
-def detect_theme() -> str:
-    try:
-        return st.context.theme.type
-    except Exception:
-        return "unknown"
-
-THEME = detect_theme()
-#st.sidebar.write("Detected theme:", THEME)
 
 @st.cache_data
 def logo_uri(name: str) -> str:
