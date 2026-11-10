@@ -74,7 +74,7 @@ px.defaults.color_discrete_sequence = COLORWAY
 
 
 def load_css():
-    css_name = "style.css" if THEME == "light" else "style_dark.css"
+    css_name = "style_dark.css"
     css = (PROJECT_ROOT / "assets" / css_name).read_text(encoding="utf-8")
     st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
 
