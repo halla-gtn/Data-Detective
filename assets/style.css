@@ -1,1 +1,120 @@
 
+/* Data Detective - thème CLAIR */
+:root {
+  --bg:#F6F7FB; --surface:#FFFFFF; --surface-2:#F1F5F9; --sidebar-bg:#FFFFFF;
+  --border:#E2E8F0; --text:#0F172A; --text-muted:#64748B;
+  --primary:#4F46E5; --primary-hover:#4338CA; --primary-soft:#EEF2FF; --primary-soft-text:#3730A3;
+  --primary-border:#C7D2FE; --ring:rgba(79,70,229,.25);
+  --shadow:0 1px 2px rgba(15,23,42,.04), 0 4px 12px rgba(15,23,42,.04);
+}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* ============ BASE ============ */
+html, body, .stApp, [class*="css"] { font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif; }
+.stApp { background: var(--bg); color: var(--text); }
+.block-container { padding-top: 2.5rem; padding-bottom: 4rem; max-width: 1180px; }
+p, li, label, span { color: inherit; }
+
+/* Header natif : transparent (on garde le bouton de la sidebar) */
+[data-testid="stHeader"] { background: transparent; }
+[data-testid="stAppDeployButton"], .stDeployButton, footer { display: none !important; }   /* on garde le menu ⋮ (Settings > Theme) */
+[data-testid="stHeaderActionElements"] { display: none; }   /* icône d'ancre à côté des titres */
+
+/* ============ TYPOGRAPHIE ============ */
+h1, h2, h3, h4 { color: var(--text); letter-spacing: -0.02em; font-weight: 700; }
+h1 { font-size: 2rem; }
+h2, [data-testid="stHeading"] h2 { font-size: 1.35rem; margin-top: .5rem; }
+h3 { font-size: 1.1rem; }
+[data-testid="stCaptionContainer"], .stCaption { color: var(--text-muted); }
+hr { margin: 1.75rem 0; border: none; border-top: 1px solid var(--border); }
+
+/* ============ SIDEBAR ============ */
+[data-testid="stSidebar"] { background: var(--sidebar-bg); border-right: 1px solid var(--border); }
+[data-testid="stSidebar"] .block-container, [data-testid="stSidebarUserContent"] { padding-top: 1.5rem; }
+
+.dd-brand { display: flex; align-items: center; gap: .75rem; margin-bottom: .25rem; }
+.dd-logo-img { width: 40px; height: 40px; border-radius: 10px; display: block; box-shadow: 0 2px 8px rgba(79,70,229,.35); }
+.dd-brand-name { font-weight: 600; font-size: 1.1rem; color: var(--text); line-height: 1.2; letter-spacing: -0.01em; }
+.dd-brand-name b { font-weight: 800; color: var(--primary); }
+.dd-brand-tag  { font-size: .75rem; color: var(--text-muted); }
+
+.dd-nav-label { font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); margin: .25rem 0 .5rem; }
+
+/* radio -> menu de navigation */
+[data-testid="stSidebar"] div[role="radiogroup"] { gap: 2px; }
+[data-testid="stSidebar"] div[role="radiogroup"] > label { width: 100%; padding: .55rem .75rem; border-radius: 8px; cursor: pointer; transition: background .15s; }
+[data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none; }   /* cache la pastille ronde */
+[data-testid="stSidebar"] div[role="radiogroup"] > label:hover { background: var(--surface-2); }
+[data-testid="stSidebar"] div[role="radiogroup"] > label p { font-size: .92rem; font-weight: 500; color: var(--text); }
+[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) { background: var(--primary-soft); }
+[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) p { color: var(--primary-soft-text); font-weight: 600; }
+
+.dd-status { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: .7rem .85rem; font-size: .8rem; color: var(--text-muted); }
+.dd-status b { color: var(--text); display: block; font-size: .85rem; word-break: break-all; }
+.dd-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981; margin-right: 6px; }
+.dd-dot.off { background: #94A3B8; }
+
+/* ============ EN-TÊTES DE PAGE / HERO / CARTES ============ */
+.dd-page-header { margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
+.dd-page-header h1 { margin: 0 0 .25rem; padding: 0; }
+.dd-page-header p  { margin: 0; color: var(--text-muted); font-size: 1rem; }
+
+.dd-hero { background: linear-gradient(135deg, var(--primary) 0%, #7C3AED 100%); border-radius: 16px; padding: 2.5rem 2.25rem; color: #fff; margin-bottom: 1.5rem; }
+.dd-hero-top { display: flex; align-items: center; gap: .8rem; margin-bottom: .4rem; }
+.dd-hero-logo { width: 52px; height: 52px; border-radius: 13px; display: block; box-shadow: 0 6px 18px rgba(15,23,42,.25); }
+.dd-hero-brand { font-size: 1.15rem; font-weight: 600; color: #fff; letter-spacing: -0.01em; }
+.dd-hero-brand b { font-weight: 800; }
+.dd-hero .dd-kicker { font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; opacity: .85; font-weight: 600; }
+.dd-hero h1 { color: #fff; font-size: 2.3rem; margin: .8rem 0 .6rem; }
+.dd-hero p  { color: rgba(255,255,255,.88); max-width: 620px; margin: 0; font-size: 1.02rem; line-height: 1.55; }
+
+.dd-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.15rem 1.2rem; box-shadow: var(--shadow); height: 100%; }
+.dd-card .dd-card-icon { width: 34px; height: 34px; border-radius: 8px; background: var(--primary-soft); color: var(--primary-soft-text);
+                         display: flex; align-items: center; justify-content: center; font-weight: 700; margin-bottom: .7rem; font-size: .9rem; }
+.dd-card h4 { margin: 0 0 .3rem; font-size: .98rem; }
+.dd-card p  { margin: 0; font-size: .86rem; color: var(--text-muted); line-height: 1.5; }
+
+.dd-footer { text-align: center; color: var(--text-muted); font-size: .78rem; margin-top: 3rem; }
+
+/* ============ BOUTONS (y compris download) ============ */
+.stButton > button, .stDownloadButton > button, [data-testid="stBaseButton-secondary"], [data-testid="stBaseButton-primary"] {
+    background: var(--primary); color: #fff; border: 1px solid var(--primary);
+    border-radius: 8px; padding: .55rem 1.1rem; font-weight: 600; transition: all .15s;
+    box-shadow: 0 1px 2px rgba(15,23,42,.08);
+}
+.stButton > button p, .stDownloadButton > button p { color: #fff !important; font-weight: 600; }
+.stButton > button:hover, .stDownloadButton > button:hover { background: var(--primary-hover); border-color: var(--primary-hover); color: #fff; }
+.stButton > button:focus, .stDownloadButton > button:focus { box-shadow: 0 0 0 3px var(--ring); color: #fff; }
+
+/* ============ CHAMPS ============ */
+[data-baseweb="select"] > div, [data-baseweb="input"] > div, [data-baseweb="base-input"], .stTextInput input {
+    background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: 8px !important; color: var(--text) !important;
+}
+[data-baseweb="select"] > div:focus-within, [data-baseweb="input"] > div:focus-within { border-color: var(--primary) !important; box-shadow: 0 0 0 3px var(--ring); }
+[data-testid="stWidgetLabel"] p { color: var(--text) !important; font-weight: 500; font-size: .88rem; }
+span[data-baseweb="tag"] { background: var(--primary-soft) !important; border-radius: 6px; }
+span[data-baseweb="tag"] span, span[data-baseweb="tag"] svg { color: var(--primary-soft-text) !important; fill: var(--primary-soft-text) !important; }
+
+/* Upload */
+[data-testid="stFileUploaderDropzone"] { background: var(--surface); border: 2px dashed var(--primary-border); border-radius: 12px; padding: 1.5rem; }
+[data-testid="stFileUploaderDropzone"]:hover { border-color: var(--primary); }
+[data-testid="stFileUploaderDropzone"] * { color: var(--text-muted); }
+[data-testid="stFileUploaderDropzone"] button { background: var(--surface); color: var(--text) !important; border: 1px solid var(--border); }
+
+/* ============ MÉTRIQUES / TABLEAUX / GRAPHIQUES ============ */
+[data-testid="stMetric"] { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.2rem; box-shadow: var(--shadow); }
+[data-testid="stMetricLabel"] p { color: var(--text-muted) !important; font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+[data-testid="stMetricValue"] { color: var(--text); font-weight: 700; font-size: 1.8rem; }
+
+[data-testid="stDataFrame"] { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); }
+[data-testid="stPlotlyChart"] { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: .5rem; box-shadow: var(--shadow); }
+
+/* ============ ALERTES / EXPANDERS / ONGLETS ============ */
+[data-testid="stAlert"] { border-radius: 10px; border: 1px solid var(--border); }
+[data-testid="stExpander"] { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+[data-testid="stVerticalBlockBorderWrapper"]:has(> div > [data-testid="stVerticalBlock"] [data-testid="stFileUploader"]) { background: var(--surface); }
+
+.stTabs [data-baseweb="tab-list"] { gap: .25rem; border-bottom: 1px solid var(--border); }
+.stTabs [data-baseweb="tab"] { padding: .6rem 1rem; font-weight: 600; color: var(--text-muted); }
+.stTabs [aria-selected="true"] { color: var(--primary) !important; }
+.stTabs [data-baseweb="tab-highlight"] { background-color: var(--primary); }
