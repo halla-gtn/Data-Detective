@@ -15,6 +15,7 @@ from modules.data_explorer import get_dataset_overview, get_column_information
 from modules.statistics import get_numeric_statistics, get_categorical_statistics
 from modules.visualizations import suggest_visualizations, generate_visualizations
 from modules.insights import generate_all_insights
+from modules.data_cleaning import clean_dataset
 
 
 # --------------------------------------------------
@@ -37,6 +38,21 @@ st.set_page_config(
 )
 
 
+def detect_theme() -> str:
+    """Thème actif de Streamlit ("light" ou "dark"), choisi via le menu ⋮ > Settings > Theme."""
+    try:
+        return "dark" if st.context.theme.type == "dark" else "light"
+    except Exception:
+        return "light"
+
+
+# Au premier chargement, le type de thème peut être inexact : une seule relance pour le fiabiliser
+if "theme_synced" not in st.session_state:
+    st.session_state["theme_synced"] = True
+    st.rerun()
+
+THEME = detect_theme()
+
 
 @st.cache_data
 def logo_uri(name: str) -> str:
@@ -45,7 +61,7 @@ def logo_uri(name: str) -> str:
 
 
 # Palette cohérente pour tous les graphiques Plotly
-PLOTLY_TEMPLATE = "plotly_dark"
+PLOTLY_TEMPLATE = "plotly_white" if THEME == "light" else "plotly_dark"
 COLORWAY = ["#4F46E5", "#06B6D4", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#64748B"]
 pio.templates.default = PLOTLY_TEMPLATE
 px.defaults.template = PLOTLY_TEMPLATE
@@ -53,7 +69,7 @@ px.defaults.color_discrete_sequence = COLORWAY
 
 
 def load_css():
-    css_name = "style_dark.css"
+    css_name = "style.css" if THEME == "light" else "style_dark.css"
     css = (PROJECT_ROOT / "assets" / css_name).read_text(encoding="utf-8")
     st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
 
@@ -133,7 +149,7 @@ with st.sidebar:
 
     selected_page = st.radio(
         "Go to",
-        ["Home", "Overview", "Data Explorer", "Visualizations", "Data Insights", "Export"],
+        ["Home", "Overview", "Data Explorer", "Visualizations", "Data Insights", "Data Cleaning", "Export"],
         label_visibility="collapsed",
     )
 
@@ -386,9 +402,284 @@ elif selected_page == "Data Insights":
                         st.warning(message)
 
 
+
 # --------------------------------------------------
-# EXPORT
+# DATA CLEANING
 # --------------------------------------------------
+
+elif selected_page == "Data Cleaning":
+
+    page_header(
+        "Data Cleaning",
+        "Clean your dataset, improve data quality and download the result."
+    )
+
+    df = require_dataset()
+
+    st.markdown("### Cleaning configuration")
+    st.caption("Choose how Data Detective should handle each data quality issue.")
+
+    # Educational explanations
+    with st.expander("Learn more: Missing Values"):
+        st.markdown("""
+        **What are Missing Values?**
+
+        Missing values are empty or unavailable cells in a dataset.
+        They may affect statistical analysis and machine learning models.
+
+        **Available treatments:**
+
+        - **Keep missing values:** Preserve empty cells without modification.
+        - **Median / Mode:**
+            - Numerical columns: replace missing values with the median.
+            - Categorical columns: replace missing values with the most frequent value (Mode).
+        - **Remove rows:** Delete every row containing at least one missing value.
+        """)
+
+    with st.expander("Learn more: Duplicate Rows"):
+        st.markdown("""
+        **What are Duplicate Rows?**
+
+        Duplicate rows are records that appear more than once
+        with exactly the same values across all columns.
+
+        Removing duplicates helps avoid counting the same record multiple times.
+        """)
+
+    with st.expander("Learn more: Outliers and IQR Method"):
+        st.markdown("""
+        **What are Outliers?**
+
+        Outliers are values that are unusually far from the rest
+        of the observations.
+
+        **How does the IQR method work?**
+
+        The Interquartile Range (IQR) measures the spread of the
+        middle 50% of the data:
+
+        - Q1: First quartile (25th percentile).
+        - Q3: Third quartile (75th percentile).
+        - IQR = Q3 - Q1.
+
+        The method calculates two detection boundaries:
+
+        - Lower Bound = Q1 - (Factor × IQR)
+        - Upper Bound = Q3 + (Factor × IQR)
+
+        Values below the lower bound or above the upper bound
+        are identified as potential outliers.
+
+        **Available treatments:**
+
+        - **Keep Outliers:** Keep detected values unchanged.
+        - **Remove Outliers:** Remove rows containing detected outliers.
+        - **Capping (Winsorization):** Replace extreme values with
+          the corresponding lower or upper boundary.
+        """)
+
+    with st.expander("Learn more: Understanding the IQR Factor"):
+        st.markdown("""
+        **What is the IQR Factor?**
+
+        The IQR Factor controls the sensitivity of outlier detection.
+
+        - **Closer to 1.00:** Narrower boundaries and more sensitive detection.
+        - **1.50:** Standard factor commonly used in Tukey's IQR method.
+        - **Closer to 3.00:** Wider boundaries and less sensitive detection.
+
+        **Important:** A lower factor may identify more potential outliers,
+        while a higher factor may identify fewer.
+
+        The range from 1.00 to 3.00 is a practical setting chosen
+        for this application, not a mandatory mathematical restriction.
+        """)
+
+    with st.form("data_cleaning_form"):
+
+        st.markdown("**1. Missing Values Treatment**")
+
+        missing_options = {
+            "Keep missing values": "keep",
+            "Median / Mode": "mean_median_mode",
+            "Remove rows with missing values": "remove_rows"
+        }
+
+        missing_label = st.selectbox(
+            "Select treatment",
+            options=list(missing_options.keys())
+        )
+
+        st.divider()
+
+        st.markdown("**2. Duplicate Rows**")
+
+        remove_duplicates_option = st.checkbox(
+            "Remove duplicate rows",
+            value=True
+        )
+
+        st.divider()
+
+        st.markdown("**3. Outliers Treatment (IQR Method)**")
+
+        outlier_options = {
+            "Keep Outliers": "keep",
+            "Remove Outliers": "remove",
+            "Capping (Winsorization)": "cap"
+        }
+
+        outlier_label = st.selectbox(
+            "Select outlier treatment",
+            options=list(outlier_options.keys())
+        )
+
+        iqr_factor = st.slider(
+            "IQR factor",
+            min_value=1.0,
+            max_value=3.0,
+            value=1.5,
+            step=0.25,
+            help="Controls the boundaries used to detect outliers. 1.5 is the standard IQR factor."
+        )
+
+        apply_cleaning = st.form_submit_button(
+            "Apply Data Cleaning",
+            use_container_width=True
+        )
+
+    if apply_cleaning:
+
+        try:
+            cleaned_df, cleaning_report = clean_dataset(
+                df,
+                missing_strategy=missing_options[missing_label],
+                remove_duplicate_rows=remove_duplicates_option,
+                outlier_method=outlier_options[outlier_label],
+                iqr_factor=iqr_factor
+            )
+
+            st.session_state["cleaned_dataset"] = cleaned_df
+            st.session_state["cleaning_report"] = cleaning_report
+            st.session_state["cleaned_source_filename"] = st.session_state["filename"]
+
+            st.success("Data cleaning completed successfully!")
+
+        except Exception as error:
+            st.error(f"Data cleaning error: {error}")
+
+    # Display cleaning results
+    if (
+        "cleaned_dataset" in st.session_state
+        and st.session_state.get("cleaned_source_filename") == st.session_state["filename"]
+    ):
+
+        cleaned_df = st.session_state["cleaned_dataset"]
+        report = st.session_state["cleaning_report"]
+
+        st.divider()
+        st.markdown("### Cleaning Report")
+
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric(
+            "Original Rows",
+            f"{report['original_rows']:,}"
+        )
+
+        col2.metric(
+            "Cleaned Rows",
+            f"{report['cleaned_rows']:,}",
+            delta=report['cleaned_rows'] - report['original_rows']
+        )
+
+        col3.metric(
+            "Columns",
+            f"{report['cleaned_columns']:,}"
+        )
+
+        st.markdown("### Data Quality: Before vs After")
+
+        comparison = pd.DataFrame({
+            "Metric": [
+                "Missing Values",
+                "Duplicate Rows"
+            ],
+            "Before Cleaning": [
+                report["missing_values_before"],
+                report["duplicate_rows_before"]
+            ],
+            "After Cleaning": [
+                report["missing_values_after"],
+                report["duplicate_rows_after"]
+            ]
+        })
+
+        st.dataframe(
+            comparison,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        st.markdown("### Operations Summary")
+
+        st.write(
+            f"- Rows removed due to missing values: **{report['missing_rows_removed']}**"
+        )
+
+        st.write(
+            f"- Duplicate rows removed: **{report['duplicates_removed']}**"
+        )
+
+        st.write(
+            f"- Outlier values treated: **{report['outliers_treated']}**"
+        )
+
+        st.markdown("### Cleaned Dataset Preview")
+
+        st.caption(
+            f"{len(cleaned_df):,} rows · {len(cleaned_df.columns):,} columns"
+        )
+
+        st.dataframe(
+            cleaned_df.head(100),
+            use_container_width=True,
+            hide_index=True
+        )
+
+        st.markdown("### Download Cleaned Dataset")
+
+        csv_data = cleaned_df.to_csv(index=False).encode("utf-8")
+
+        excel_buffer = BytesIO()
+
+        with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
+            cleaned_df.to_excel(
+                writer,
+                index=False,
+                sheet_name="Cleaned Dataset"
+            )
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.download_button(
+                "Download Cleaned CSV",
+                csv_data,
+                "cleaned_dataset.csv",
+                "text/csv",
+                use_container_width=True
+            )
+
+        with col2:
+            st.download_button(
+                "Download Cleaned Excel",
+                excel_buffer.getvalue(),
+                "cleaned_dataset.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True
+            )
+
 
 elif selected_page == "Export":
 
@@ -455,4 +746,3 @@ elif selected_page == "Export":
 # --------------------------------------------------
 
 st.markdown(f'<div class="dd-footer">{BRAND_FIRST} {BRAND_SECOND} · Halla GUETARNI</div>', unsafe_allow_html=True)
-
