@@ -45,8 +45,9 @@ Data-Detective/
 │
 ├── modules/
 │   ├── __init__.py
+|   ├── data_cleaning.py
 │   ├── data_loader.py
-│   ├── data_explorer.py
+│   ├── data_explorer.py 
 │   ├── statistics.py
 │   ├── visualizations.py
 │   └── insights.py
